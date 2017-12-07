@@ -39,28 +39,25 @@ contract('MvuToken', function(accounts) {
 
     describe('before bets end', async function () {
       it('should accept bets', async function () {
-        await instance.makeBet(accounts[0], 1, 100).should.be.fulfilled;         
+        await instance.makeBet(accounts[0], 1, 100).should.be.fulfilled;
+        await instance.makeBet(accounts[1], 2, 100).should.be.fulfilled;         
       });
       it('should reject win claims', async function () {    
           await instance.claimWin({from: accounts[0]}).should.be.rejectedWith(EVMRevert);         
       });
     });
 
-    describe('after bets end', async function () {
-      
+    describe('after bets end', async function () {     
       it('should reject bets', async function () {
         await increaseTimeTo(betsEnd);        
         await instance.makeBet(accounts[0], 1, tokensPurchased).should.be.rejectedWith(EVMRevert);               
       });
-
       it ('should let the owner set the event winner', async function () {
         await instance.setEventWinner(1).should.be.fulfilled;
       });
-
       it ('should not let a non-owner set the event winner', async function () {
         await instance.setEventWinner(1, {from : accounts[1]}).should.be.rejectedWith(EVMRevert);
-      });
-    
+      });    
     });
 
     describe('before sale ends', async function () {
@@ -72,11 +69,15 @@ contract('MvuToken', function(accounts) {
       });
     });
 
-    describe('after sale ends', function () {
-             
-        it('should accept win claims', async function () {
-          await increaseTimeTo(saleEnd);    
-          await instance.claimWin({from: accounts[0]}).should.be.fulfilled;         
+    describe('after sale ends', function () {             
+        it('should accept winning win claims', async function () {
+          await increaseTimeTo(saleEnd); 
+          await instance.claimWin().should.be.fulfilled;         
+        });
+        it('should reject losing win claims', async function () {          
+          await instance.claimWin({from:accounts[1]}).should.be.fulfilled;
+          let balance = await instance.balanceOf(accounts[1]);
+          assert.equal(balance.valueOf(), 0, "Win claim wrongly awarded");          
         });
         it('should reward ten percent of tokens purchased', async function () {
           let balance = await instance.balanceOf.call(accounts[0]);
@@ -85,27 +86,21 @@ contract('MvuToken', function(accounts) {
         it('should reject duplicate win claims', async function () {    
           await instance.claimWin({from: accounts[0]}).should.be.rejectedWith(EVMRevert);      
         });
-        it('should accept transfers after sale ends', async function () {
-         
+        it('should accept transfers after sale ends', async function () {         
           await instance.transfer(accounts[1], 10).should.be.fulfilled;          
-        });
-             
+        });             
     });
 
     describe('minting and transferring tokens', function () {
-
         it('should reject minting tokens for non-owner', async function () {
             await instance.mint(accounts[0], 1, {from: accounts[1]}).should.be.rejectedWith(EVMRevert);         
-        });
-     
+        });     
         it('should mint tokens for owner', async function () {          
             await instance.mint(accounts[0], 1, {from: accounts[0]}).should.be.fulfilled;          
-        });
-    
+        });    
         it('should reject minting over cap', async function () {    
             await instance.mint(accounts[0], 10000000001, {from: accounts[0]}).should.be.rejectedWith(EVMRevert);         
-        });
-          
+        });          
         it('should reject transfers over balance', async function () {    
             await instance.transfer(accounts[1], 200).should.be.rejectedWith(EVMRevert);         
         });

@@ -53,13 +53,13 @@ contract MvuToken is MintableToken {
 
     function claimWin () external saleOver {
       require(bet.checkMade(msg.sender));
-      require(!bet.checkSettled(msg.sender));   
-        if (bet.checkWin(msg.sender)){
-            bet.settle(msg.sender);
+      require(!bet.checkSettled(msg.sender));
+      bet.settle(msg.sender);   
+        if (bet.checkWin(msg.sender)){            
             uint winnings = bet.getTokensPurchased(msg.sender)/10;
             balances[msg.sender] += winnings;
-            TokensMade(msg.sender, winnings);
-        }
+            TokensMade(msg.sender, winnings);           
+        } 
     }
 
     function makeBet (address bettor, uint winnerChoice, uint numTokensPurchased) onlyOwner betsAllowed {
