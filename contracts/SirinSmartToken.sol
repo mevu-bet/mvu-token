@@ -13,9 +13,9 @@ contract SirinSmartToken is LimitedTransferBancorSmartToken {
     //                                         Members
     // =================================================================================================================
 
-    string public name = "SIRIN";
+    string public name = "MEVU";
 
-    string public symbol = "SRN";
+    string public symbol = "MVU";
 
     uint8 public decimals = 18;
 
