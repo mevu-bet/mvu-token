@@ -25,7 +25,7 @@ contract RefundVault is Claimable {
     // =================================================================================================================
 
     // Refund time frame
-    uint256 public constant REFUND_TIME_FRAME = 60 days;
+    uint256 public constant REFUND_TIME_FRAME = 15 minutes;// days;
 
     mapping (address => uint256) public depositedETH;
     mapping (address => uint256) public depositedToken;
@@ -85,14 +85,14 @@ contract RefundVault is Claimable {
     //                                      Ctors
     // =================================================================================================================
 
-    function RefundVault(address _etherWallet, SirinSmartToken _token) public {
+    constructor(address _etherWallet, address _token) public {
         require(_etherWallet != address(0));
         require(_token != address(0));
 
         etherWallet = _etherWallet;
-        token = _token;
+        token = SirinSmartToken(_token);
         state = State.Active;
-        Active();
+        emit Active();
     }
 
     // =================================================================================================================
@@ -104,20 +104,21 @@ contract RefundVault is Claimable {
         depositedETH[investor] = depositedETH[investor].add(msg.value);
         depositedToken[investor] = depositedToken[investor].add(tokensAmount);
 
-        Deposit(investor, msg.value, tokensAmount);
+        emit Deposit(investor, msg.value, tokensAmount);
     }
 
     function close() isRefundingState onlyOwner isRefundTimeFrameExceeded public {
         state = State.Closed;
-        Closed();
-        etherWallet.transfer(this.balance);
+        emit Closed();
+        //token.setDestroyEnabled(false);
+        etherWallet.transfer(address(this).balance);
     }
 
     function enableRefunds() isActiveState onlyOwner public {
         state = State.Refunding;
         refundStartTime = now;
 
-        RefundsEnabled();
+        emit RefundsEnabled();
     }
 
     //@dev Refund ether back to the investor in returns of proportional amount of SRN
@@ -140,7 +141,7 @@ contract RefundVault is Claimable {
         token.destroy(address(this),refundTokens);
         msg.sender.transfer(ETHToRefundAmountWei);
 
-        RefundedETH(msg.sender, ETHToRefundAmountWei);
+        emit RefundedETH(msg.sender, ETHToRefundAmountWei);
     }
 
     //@dev Transfer tokens from the vault to the investor while releasing proportional amount of ether
@@ -169,7 +170,7 @@ contract RefundVault is Claimable {
             etherWallet.transfer(claimedETH);
         }
 
-        TokensClaimed(investor, tokensToClaim);
+        emit TokensClaimed(investor, tokensToClaim);
     }
     
     // @dev investors can claim tokens by calling the function

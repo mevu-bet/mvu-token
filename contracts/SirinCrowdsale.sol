@@ -1,6 +1,5 @@
 pragma solidity ^0.4.18;
 
-
 import './crowdsale/RefundVault.sol';
 import './crowdsale/FinalizableCrowdsale.sol';
 import './math/SafeMath.sol';
@@ -20,13 +19,17 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     // 2. MVU tokens for presale bonus and FIFA Campaign.
     // we set the value to 10 (and not to 2) because we want to allow some flexibility for cases like fiat money that is raised close to the crowdsale.
     // we limit the value to 10 (and not larger) to limit the run time of the function that process the grantees array.
-    uint8 public constant MAX_TOKEN_GRANTEES = 10;
+    //uint8 public constant MAX_TOKEN_GRANTEES = 10;
 
     // MVU to ETH base rate
     uint256 public constant EXCHANGE_RATE = 2000;
 
     // Refund division rate
     uint256 public constant REFUND_DIVISION_RATE = 2;
+
+    uint256 public constant founderGrant = 40800000000000000000000000;
+
+  
 
     // =================================================================================================================
     //                                      Modifiers
@@ -44,30 +47,29 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     //                                      Members
     // =================================================================================================================
 
-    // wallets address for 14% of MVU allocation
-    address public walletTeam;   //6% of the total number of MVU tokens will be allocated to the advisory team
-    address public walletFounders;  //2% of the total number of MVU tokens will be allocated to the founding team
-    address public walletBounties;  //2% of the total number of MVU tokens will be allocated to professional fees and Bounties
-    address public walletRefer;   //4% of the total number of MVU tokens will be allocated to the referral and ranking rewards engine
+   
+    address public walletFounders;  //multi-sig wallet controlled by founding team
+
 
     // Funds collected outside the crowdsale in wei
     uint256 public fiatRaisedConvertedToWei;
 
     //Grantees - used for non-ether and presale bonus token generation
-    address[] public presaleGranteesMapKeys;
-    mapping (address => uint256) public presaleGranteesMap;  //address=>wei token amount
+    //address[] public presaleGranteesMapKeys;
+    //mapping (address => uint256) public presaleGranteesMap;  //address=>wei token amount
 
     // The refund vault
     RefundVault public refundVault;
+    SirinSmartToken public token;
 
     // =================================================================================================================
     //                                      Events
     // =================================================================================================================
-    event GrantAdded(address indexed _grantee, uint256 _amount);
+    // event GrantAdded(address indexed _grantee, uint256 _amount);
 
-    event GrantUpdated(address indexed _grantee, uint256 _oldAmount, uint256 _newAmount);
+    // event GrantUpdated(address indexed _grantee, uint256 _oldAmount, uint256 _newAmount);
 
-    event GrantDeleted(address indexed _grantee, uint256 _hadAmount);
+    // event GrantDeleted(address indexed _grantee, uint256 _hadAmount);
 
     event FiatRaisedUpdated(address indexed _address, uint256 _fiatRaised);
 
@@ -77,31 +79,24 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     //                                      Constructors
     // =================================================================================================================
 
-    function SirinCrowdsale(uint256 _startTime,
-    uint256 _endTime,
-    address _wallet,
-    address _walletTeam,
+    constructor(uint256 _startTime,
+    uint256 _endTime,    
     address _walletFounders,
-    address _walletBounties,
-    address _walletRefer,
-    SirinSmartToken _sirinSmartToken,
-    RefundVault _refundVault)
+    address _sirinSmartToken,
+    address _refundVault)
     public
-    Crowdsale(_startTime, _endTime, EXCHANGE_RATE, _wallet, _sirinSmartToken) {
-        require(_walletTeam != address(0));
-        require(_walletFounders != address(0));
-        require(_walletBounties != address(0));
-        require(_walletRefer != address(0));
+    Crowdsale(_startTime, _endTime, EXCHANGE_RATE, _walletFounders, SirinSmartToken(_sirinSmartToken)) {
+      
+        require(_walletFounders != address(0));      
         require(_sirinSmartToken != address(0));
         require(_refundVault != address(0));
+   
+        walletFounders = _walletFounders;      
 
-        walletTeam = _walletTeam;
-        walletFounders = _walletFounders;
-        walletBounties = _walletBounties;
-        walletRefer = _walletRefer;
+        token = SirinSmartToken(_sirinSmartToken);
+        refundVault  = RefundVault(_refundVault);
 
-        token = _sirinSmartToken;
-        refundVault  = _refundVault;
+        
     }
 
     // =================================================================================================================
@@ -135,9 +130,9 @@ contract SirinCrowdsale is FinalizableCrowdsale {
         super.finalization();
 
         // granting bonuses for the pre crowdsale grantees:
-        for (uint256 i = 0; i < presaleGranteesMapKeys.length; i++) {
-            token.issue(presaleGranteesMapKeys[i], presaleGranteesMap[presaleGranteesMapKeys[i]]);
-        }
+        // for (uint256 i = 0; i < presaleGranteesMapKeys.length; i++) {
+        //     token.issue(presaleGranteesMapKeys[i], presaleGranteesMap[presaleGranteesMapKeys[i]]);
+        // }
 
         // // Adding approx 14% of the total token supply
         // // 40 * 2.5 = 100
@@ -157,11 +152,14 @@ contract SirinCrowdsale is FinalizableCrowdsale {
         // // and as a reserve for the company to be used for future strategic plans for the created ecosystem
         // token.issue(walletReserve, newTotalSupply.mul(35).div(100));
 
+        // Issue tokens to founder MultiSig so they can disperse to advisors, presale, airdrop
+        token.issue(walletFounders, founderGrant);
+
         // Re-enable transfers after the token sale.
         token.disableTransfers(false);
 
         // Re-enable destroy function after the token sale.
-        token.setDestroyEnabled(true);
+        //token.setDestroyEnabled(true);
 
         // Enable ETH refunds and token claim.
         refundVault.enableRefunds();
@@ -193,46 +191,46 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     // Granted tokens are allocated to non-ether, presale, buyers.
     // @param _grantee address The address of the token grantee.
     // @param _value uint256 The value of the grant in wei token.
-    function addUpdateGrantee(address _grantee, uint256 _value) external onlyOwner onlyWhileSale{
-        require(_grantee != address(0));
-        require(_value > 0);
+    // function addUpdateGrantee(address _grantee, uint256 _value) external onlyOwner onlyWhileSale{
+    //     require(_grantee != address(0));
+    //     require(_value > 0);
 
-        // Adding new key if not present:
-        if (presaleGranteesMap[_grantee] == 0) {
-            require(presaleGranteesMapKeys.length < MAX_TOKEN_GRANTEES);
-            presaleGranteesMapKeys.push(_grantee);
-            GrantAdded(_grantee, _value);
-        }
-        else {
-            GrantUpdated(_grantee, presaleGranteesMap[_grantee], _value);
-        }
+    //     // Adding new key if not present:
+    //     if (presaleGranteesMap[_grantee] == 0) {
+    //         require(presaleGranteesMapKeys.length < MAX_TOKEN_GRANTEES);
+    //         presaleGranteesMapKeys.push(_grantee);
+    //         emit GrantAdded(_grantee, _value);
+    //     }
+    //     else {
+    //         emit GrantUpdated(_grantee, presaleGranteesMap[_grantee], _value);
+    //     }
 
-        presaleGranteesMap[_grantee] = _value;
-    }
+    //     presaleGranteesMap[_grantee] = _value;
+    // }
 
-    // @dev deletes entries from the grants list.
-    // @param _grantee address The address of the token grantee.
-    function deleteGrantee(address _grantee) external onlyOwner onlyWhileSale {
-        require(_grantee != address(0));
-        require(presaleGranteesMap[_grantee] != 0);
+    // // @dev deletes entries from the grants list.
+    // // @param _grantee address The address of the token grantee.
+    // function deleteGrantee(address _grantee) external onlyOwner onlyWhileSale {
+    //     require(_grantee != address(0));
+    //     require(presaleGranteesMap[_grantee] != 0);
 
-        //delete from the map:
-        delete presaleGranteesMap[_grantee];
+    //     //delete from the map:
+    //     delete presaleGranteesMap[_grantee];
 
-        //delete from the array (keys):
-        uint256 index;
-        for (uint256 i = 0; i < presaleGranteesMapKeys.length; i++) {
-            if (presaleGranteesMapKeys[i] == _grantee) {
-                index = i;
-                break;
-            }
-        }
-        presaleGranteesMapKeys[index] = presaleGranteesMapKeys[presaleGranteesMapKeys.length - 1];
-        delete presaleGranteesMapKeys[presaleGranteesMapKeys.length - 1];
-        presaleGranteesMapKeys.length--;
+    //     //delete from the array (keys):
+    //     uint256 index;
+    //     for (uint256 i = 0; i < presaleGranteesMapKeys.length; i++) {
+    //         if (presaleGranteesMapKeys[i] == _grantee) {
+    //             index = i;
+    //             break;
+    //         }
+    //     }
+    //     presaleGranteesMapKeys[index] = presaleGranteesMapKeys[presaleGranteesMapKeys.length - 1];
+    //     delete presaleGranteesMapKeys[presaleGranteesMapKeys.length - 1];
+    //     presaleGranteesMapKeys.length--;
 
-        GrantDeleted(_grantee, presaleGranteesMap[_grantee]);
-    }
+    //     emit GrantDeleted(_grantee, presaleGranteesMap[_grantee]);
+    // }
 
     // @dev Set funds collected outside the crowdsale in wei.
     //  note: we not to use accumulator to allow flexibility in case of humane mistakes.
@@ -240,7 +238,7 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     // @param _fiatRaisedConvertedToWei number of none eth raised.
     function setFiatRaisedConvertedToWei(uint256 _fiatRaisedConvertedToWei) external onlyOwner onlyWhileSale {
         fiatRaisedConvertedToWei = _fiatRaisedConvertedToWei;
-        FiatRaisedUpdated(msg.sender, fiatRaisedConvertedToWei);
+        emit FiatRaisedUpdated(msg.sender, fiatRaisedConvertedToWei);
     }
 
     /// @dev Accepts new ownership on behalf of the SirinCrowdsale contract. This can be used, by the token sale
@@ -256,14 +254,17 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     }
 
     // @dev Buy tokes with guarantee
-    function buyTokensWithGuarantee() public payable {
-        require(validPurchase());
+    function buyTokensWithGuarantee() public payable {    
+   
 
         uint256 weiAmount = msg.value;
+        _preValidatePurchase(msg.sender, weiAmount);
 
         // calculate token amount to be created
         uint256 tokens = weiAmount.mul(getRate());
-        tokens = tokens.div(REFUND_DIVISION_RATE);
+        tokens = tokens.div(REFUND_DIVISION_RATE);    
+
+        require(validPurchase(tokens));
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
@@ -272,6 +273,6 @@ contract SirinCrowdsale is FinalizableCrowdsale {
 
         refundVault.deposit.value(msg.value)(msg.sender, tokens);
 
-        TokenPurchaseWithGuarantee(msg.sender, address(refundVault), weiAmount, tokens);
+        emit TokenPurchaseWithGuarantee(msg.sender, address(refundVault), weiAmount, tokens);
     }
 }
