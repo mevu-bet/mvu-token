@@ -15,7 +15,7 @@ const SirinSmartToken = artifacts.require('SirinSmartToken')
 
 contract('Crowdsale', function([_, investor, wallet, purchaser]) {
     const rate = new BigNumber(1000);
-    const value = ether(42);
+    const value = ether(12);
 
     const expectedTokenAmount = rate.mul(value);
 

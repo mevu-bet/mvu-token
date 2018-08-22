@@ -13,7 +13,7 @@ contract SirinSmartToken is LimitedTransferBancorSmartToken {
     //                                         Members
     // =================================================================================================================
 
-    string public name = "MEVU";
+    string public name = "Mevu";
 
     string public symbol = "MVU";
 

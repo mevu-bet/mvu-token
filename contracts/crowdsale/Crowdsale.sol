@@ -33,7 +33,7 @@ contract Crowdsale {
     // amount of raised money in wei
     uint256 public weiRaised;
 
-    uint256 public constant saleHardCap = 60000000000000000000000000;
+    uint256 public saleHardCap = 60000000000000000000000000;
 
     /**
      * event for token purchase logging
@@ -118,6 +118,8 @@ contract Crowdsale {
     function getRate() public view returns (uint256) {
         return rate;
     }
+
+  
 
 
 }

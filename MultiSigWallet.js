@@ -131,21 +131,23 @@ contract('MultiSigWallet', (accounts) => {
         let requirement = 2;
         let wallet;
         let sender = accounts[3];
+      
 
         beforeEach(async () => {
             wallet = await MultiSigWalletMock.new(owners, requirement);
         });
 
         it('should receive ETH', async () => {
-            let senderBalance = web3.eth.getBalance(sender);
-            let walletBalance = web3.eth.getBalance(wallet.address);
+            
+            let senderBalance = await web3.eth.getBalance(sender);
+            let walletBalance = await web3.eth.getBalance(wallet.address);
             assert.equal(walletBalance.toNumber(), 0);
 
             let value = 10000;
             let transaction = await wallet.sendTransaction({from: sender, value: value});
 
-            let senderBalance2 = web3.eth.getBalance(sender);
-            assert.equal(senderBalance2.toNumber(), senderBalance.minus(value).toNumber());
+            let senderBalance2 = await web3.eth.getBalance(sender);
+            senderBalance.minus(senderBalance2).toNumber().should.be.equal(value);
 
             let walletBalance2 = web3.eth.getBalance(wallet.address);
             assert.equal(walletBalance2.toNumber(), walletBalance.plus(value).toNumber());

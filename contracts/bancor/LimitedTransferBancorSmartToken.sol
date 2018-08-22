@@ -28,7 +28,7 @@ contract LimitedTransferBancorSmartToken is MintableToken, ISmartToken, LimitedT
     // We add this flag to avoid users and owner from destroy tokens during crowdsale,
     // This flag is set to false by default and blocks destroy function,
     // We enable destroy option on finalize, so destroy will be possible after the crowdsale.
-    //bool public destroyEnabled = false;
+    bool public destroyEnabled = false;
 
     // =================================================================================================================
     //                                      Public Functions

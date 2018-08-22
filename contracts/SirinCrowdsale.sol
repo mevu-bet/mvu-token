@@ -22,12 +22,12 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     //uint8 public constant MAX_TOKEN_GRANTEES = 10;
 
     // MVU to ETH base rate
-    uint256 public constant EXCHANGE_RATE = 2000;
+    uint256 public constant EXCHANGE_RATE = 625;
 
     // Refund division rate
     uint256 public constant REFUND_DIVISION_RATE = 2;
 
-    uint256 public constant founderGrant = 40800000000000000000000000;
+    uint256 public founderGrant = 45000000000000000000000000;
 
   
 
@@ -106,19 +106,28 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     // @return the rate in MVU per 1 ETH according to the time of the tx and the MVU pricing program.
     // @Override
     function getRate() public view returns (uint256) {
-        if (now < (startTime.add(9 days))) {return 2500;}
-        if (now < (startTime.add(10 days))) {return 2439;}
-        if (now < (startTime.add(11 days))) {return 2381;}
-        if (now < (startTime.add(12 days))) {return 2326;}
-        if (now < (startTime.add(13 days))) {return 2273;}
-        if (now < (startTime.add(14 days))) {return 2222;}
-        if (now < (startTime.add(15 days))) {return 2174;}
-        if (now < (startTime.add(16 days))) {return 2128;}
-        if (now < (startTime.add(17 days))) {return 2083;}
-        if (now < (startTime.add(18 days))) {return 2041;}
-        if (now < (startTime.add(19 days))) {return 2000;}      
-
-        return rate;
+        if (now < (startTime.add(9 days))) {return 808;}
+        if (now < (startTime.add(10 days))) {return 797;}
+        if (now < (startTime.add(11 days))) {return 785;}
+        if (now < (startTime.add(12 days))) {return 774;}
+        if (now < (startTime.add(13 days))) {return 763;}
+        if (now < (startTime.add(14 days))) {return 753;}
+        if (now < (startTime.add(15 days))) {return 743;}
+        if (now < (startTime.add(16 days))) {return 733;}
+        if (now < (startTime.add(17 days))) {return 723;}
+        if (now < (startTime.add(18 days))) {return 714;}
+        if (now < (startTime.add(19 days))) {return 705;}
+        if (now < (startTime.add(20 days))) {return 696;}
+        if (now < (startTime.add(21 days))) {return 687;}
+        if (now < (startTime.add(22 days))) {return 679;}
+        if (now < (startTime.add(23 days))) {return 670;}
+        if (now < (startTime.add(24 days))) {return 662;}
+        if (now < (startTime.add(25 days))) {return 654;}
+        if (now < (startTime.add(26 days))) {return 647;}
+        if (now < (startTime.add(27 days))) {return 639;}
+        if (now < (startTime.add(28 days))) {return 632;}
+     
+        return EXCHANGE_RATE;
     }
 
     // =================================================================================================================
@@ -159,7 +168,7 @@ contract SirinCrowdsale is FinalizableCrowdsale {
         token.disableTransfers(false);
 
         // Re-enable destroy function after the token sale.
-        //token.setDestroyEnabled(true);
+        token.setDestroyEnabled(true);
 
         // Enable ETH refunds and token claim.
         refundVault.enableRefunds();
@@ -239,6 +248,23 @@ contract SirinCrowdsale is FinalizableCrowdsale {
     function setFiatRaisedConvertedToWei(uint256 _fiatRaisedConvertedToWei) external onlyOwner onlyWhileSale {
         fiatRaisedConvertedToWei = _fiatRaisedConvertedToWei;
         emit FiatRaisedUpdated(msg.sender, fiatRaisedConvertedToWei);
+    }
+
+    function addToPrivateAllocation(uint256 amount) external onlyOwner  {
+        uint256 totalTokenSupply = token.totalSupply();
+        uint256 mintHardCap =  token.mintHardCap();
+        require(totalTokenSupply + amount < mintHardCap);        
+        founderGrant += amount;
+        saleHardCap -= amount;
+    }
+
+    function addToPublicAllocation(uint256 amount) external onlyOwner  {
+        uint256 totalTokenSupply = token.totalSupply();
+        uint256 mintHardCap =  token.mintHardCap();
+        require(totalTokenSupply + amount < mintHardCap); 
+        require(founderGrant > amount);       
+        founderGrant -= amount;
+        saleHardCap += amount;
     }
 
     /// @dev Accepts new ownership on behalf of the SirinCrowdsale contract. This can be used, by the token sale

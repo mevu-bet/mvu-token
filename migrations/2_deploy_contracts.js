@@ -10,13 +10,15 @@ module.exports = (deployer, network, accounts) => {
     const DAY = 24 * HOUR;
 
     // TODO: Change to actual address' before deploy !!!!!!!! 
-    const multiSigOwnerList = ["0x25a9f7512f28265Cb2772dE07DD947F969E19F49", "0xEeA15379f5EE76e6C4c829D1853355A6DA8575df"]  
+    const multiSigOwnerList = [accounts[0], accounts[1]];//"0x25a9f7512f28265Cb2772dE07DD947F969E19F49", "0xEeA15379f5EE76e6C4c829D1853355A6DA8575df"]  
 
     var token, vault, sale, multiSig;
 
-    const startTime = web3.eth.getBlock(web3.eth.blockNumber).timestamp + 60 * 3;
-    const endTime = startTime + MIN * 75; //+ DAY * 14;
-    const rate = new web3.BigNumber(1000);
+    // TODO: Change to actual times before deploy !!!!!!!! 
+    const startTime = web3.eth.getBlock(web3.eth.blockNumber).timestamp + 60 * 4;
+    const endTime = startTime +  DAY * 35; //+ DAY * 14;
+
+    //const rate = new web3.BigNumber(1000);
     const wallet = accounts[0];
     var token, refundVault;
     deployer.deploy(MultiSig, multiSigOwnerList, 2).then(function () {

@@ -17,7 +17,7 @@ contract MintableToken is StandardToken, Claimable {
     event MintFinished();
 
     bool public mintingFinished = false;
-    uint256 public constant mintHardCap = 104800000000000000000000000;
+    uint256 public constant mintHardCap = 105000000000000000000000000;
 
 
     modifier canMint(uint256 amount) {
