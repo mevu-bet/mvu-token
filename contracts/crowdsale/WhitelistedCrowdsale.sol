@@ -55,9 +55,10 @@ contract WhitelistedCrowdsale is Crowdsale, Claimable {
    */
   function removeFromWhitelist(address _beneficiary) external onlyOwner {
     whitelist[_beneficiary] = false;
-   emit WhitelistRemoval(_beneficiary);
+    emit WhitelistRemoval(_beneficiary);
   }
 
+  
   /**
    * @dev Removes list of addresses from whitelist. Not overloaded due to limitations with truffle testing.
    * @param _beneficiaries Addresses to be removed from the whitelist
