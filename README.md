@@ -4,17 +4,13 @@ The MVU token will be initally available through an Initial Exchange Offering. S
 
 ![MEVU Token](images/banner.png)
 
-MVU is a pausable ERC-20 compliant cryptocurrency built on top of the [Ethereum][ethereum] blockchain.
-
-## Contracts
-
-Please see the [contracts/](contracts) directory.
+MVU is a pausable ERC-20 compliant cryptocurrency built on top of the Ethereum blockchain.
 
 ## Develop
 
 * Code is from https://github.com/OpenZeppelin/openzeppelin-solidity
 
-* Contracts are written in [Solidity][solidity] and tested using [Truffle][truffle] and [testrpc][testrpc].
+* Contracts are written in Solidity
 
 ## Audit
 
