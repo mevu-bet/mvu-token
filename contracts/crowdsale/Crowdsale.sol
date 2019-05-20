@@ -33,6 +33,8 @@ contract Crowdsale {
     // amount of raised money in wei
     uint256 public weiRaised;
 
+    uint256 public saleHardCap = 60000000000000000000000000;
+
     /**
      * event for token purchase logging
      * @param purchaser who paid for the tokens
@@ -42,7 +44,7 @@ contract Crowdsale {
      */
     event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-    function Crowdsale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, SirinSmartToken _token) public {
+    constructor(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, SirinSmartToken _token) public {
         require(_startTime >= now);
         require(_endTime >= _startTime);
         require(_rate > 0);
@@ -64,18 +66,20 @@ contract Crowdsale {
     // low level token purchase function
     function buyTokens(address beneficiary) public payable {
         require(beneficiary != address(0));
-        require(validPurchase());
+       
 
         uint256 weiAmount = msg.value;
+        _preValidatePurchase(beneficiary, weiAmount);
 
         // calculate token amount to be created
         uint256 tokens = weiAmount.mul(getRate());
+        require(validPurchase(tokens));
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
         token.issue(beneficiary, tokens);
-        TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+        emit TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
         forwardFunds();
     }
@@ -86,11 +90,23 @@ contract Crowdsale {
         wallet.transfer(msg.value);
     }
 
+  /**
+   * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met. Use super to concatenate validations.
+   * @param _beneficiary Address performing the token purchase
+   * @param _weiAmount Value in wei involved in the purchase
+   */
+    function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
+        require(_beneficiary != address(0));
+        require(_weiAmount != 0);
+    }
+
     // @return true if the transaction can buy tokens
-    function validPurchase() internal view returns (bool) {
+    function validPurchase(uint tokens) internal view returns (bool) {
         bool withinPeriod = now >= startTime && now <= endTime;
-        bool nonZeroPurchase = msg.value != 0;
-        return withinPeriod && nonZeroPurchase;
+        bool nonZeroPurchase = msg.value != 0;    
+        uint256 currentSupply = token.totalSupply();
+        bool underCap = (currentSupply + tokens) < saleHardCap;   
+        return withinPeriod && nonZeroPurchase && underCap;
     }
 
     // @return true if crowdsale event has ended
@@ -102,6 +118,8 @@ contract Crowdsale {
     function getRate() public view returns (uint256) {
         return rate;
     }
+
+  
 
 
 }

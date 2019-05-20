@@ -1,6 +1,7 @@
 'use strict';
 
 import expectThrow from './helpers/expectThrow';
+import EVMThrow from './helpers/EVMThrow';
 var MintableToken = artifacts.require('../contracts/Tokens/MintableToken.sol');
 
 contract('Mintable', function(accounts) {
@@ -35,6 +36,10 @@ contract('Mintable', function(accounts) {
 
         let totalSupply = await token.totalSupply();
         assert(totalSupply, 100);
+    })
+
+    it('should not mint more than the cap', async function() {
+        await token.mint(accounts[0], 106000000000000000000000000).should.be.rejectedWith(EVMThrow);
     })
 
     it('should fail to mint after call to finishMinting', async function() {

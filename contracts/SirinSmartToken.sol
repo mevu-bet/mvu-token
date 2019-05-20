@@ -13,7 +13,7 @@ contract SirinSmartToken is LimitedTransferBancorSmartToken {
     //                                         Members
     // =================================================================================================================
 
-    string public name = "MEVU";
+    string public name = "Mevu";
 
     string public symbol = "MVU";
 
@@ -23,8 +23,8 @@ contract SirinSmartToken is LimitedTransferBancorSmartToken {
     //                                         Constructor
     // =================================================================================================================
 
-    function SirinSmartToken() public {
+    constructor() public {
         //Apart of 'Bancor' computability - triggered when a smart token is deployed
-        NewSmartToken(address(this));
+        emit NewSmartToken(address(this));
     }
 }

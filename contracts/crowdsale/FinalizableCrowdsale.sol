@@ -1,15 +1,15 @@
 pragma solidity ^0.4.18;
 
 import '../math/SafeMath.sol';
-import '../ownership/Claimable.sol';
-import './Crowdsale.sol';
+
+import './WhitelistedCrowdsale.sol';
 
 /**
  * @title FinalizableCrowdsale
  * @dev Extension of Crowdsale where an owner can do extra work
  * after finishing.
  */
-contract FinalizableCrowdsale is Crowdsale, Claimable {
+contract FinalizableCrowdsale is WhitelistedCrowdsale {
   using SafeMath for uint256;
 
   bool public isFinalized = false;
@@ -25,7 +25,7 @@ contract FinalizableCrowdsale is Crowdsale, Claimable {
     require(hasEnded());
 
     finalization();
-    Finalized();
+    emit Finalized();
 
     isFinalized = true;
   }

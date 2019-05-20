@@ -1,32 +1,62 @@
 var SirinCrowdsale = artifacts.require("./Crowdsale/SirinCrowdsale.sol");
+var SirinSmartToken = artifacts.require("SirinSmartToken.sol");
+var RefundVault = artifacts.require("RefundVault");
+var MultiSig = artifacts.require("./multisig/MultiSigWallet.sol");
 
-module.exports = function(deployer) {
+module.exports = (deployer, network, accounts) => {
 
     const MIN = 60;
     const HOUR = 60 * MIN;
-    const DAY =  24 * HOUR;
+    const DAY = 24 * HOUR;
 
-    //TODO: CHANGE ADDRESS BEFORE PUBLISH!
+    // TODO: Change to actual address' before deploy !!!!!!!! 
+    const multiSigOwnerList = [accounts[0], accounts[1]];//"0x25a9f7512f28265Cb2772dE07DD947F969E19F49", "0xEeA15379f5EE76e6C4c829D1853355A6DA8575df"]  
 
-    const FOUNDER_WALLET_ADDRESS = "0x00AAD1d92EB0aAb2766dEb44b84CC783941a0C9d";
+    var token, vault, sale, multiSig;
 
-    const DEVELOPERS_ADDRESS = "0x000AB5641cA153Cf75EB28AeFa33AF152222737B";
+    // TODO: Change to actual times before deploy !!!!!!!! 
+    const startTime = web3.eth.getBlock(web3.eth.blockNumber).timestamp + 60 * 4;
+    const endTime = startTime +  DAY * 35; //+ DAY * 14;
 
-    const BOUNTIES_ADDRESS = "0x0014652c7c2810094eB693BaE2854fA4954C86A4";
+    //const rate = new web3.BigNumber(1000);
+    const wallet = accounts[0];
+    var token, refundVault;
+    deployer.deploy(MultiSig, multiSigOwnerList, 2).then(function () {
+        return deployer.deploy(SirinSmartToken).then(function () {
+            return deployer.deploy(RefundVault, MultiSig.address, SirinSmartToken.address).then(function () {
+                return deployer.deploy(SirinCrowdsale,
+                    startTime,
+                    endTime,                  
+                    MultiSig.address,
+                    SirinSmartToken.address,
+                    RefundVault.address, { gas: 6900000 });
+            });
+        });
+    });
 
-    const SIRIN_LABS_RESERVE_ADDRESS = "0x0073FE89849721aFb4e60F836D10516D09f8a9F5";
-
-    const startTime = web3.eth.getBlock(web3.eth.blockNumber).timestamp + 60 * 2;
-    const endTime = startTime + DAY * 14;
-    const rate = new web3.BigNumber(1000)
-    const wallet = web3.eth.accounts[0]
-
-    // deployer.deploy(SirinCrowdsale,
-    //                startTime,
-    //                endTime,
-    //                wallet,
-    //                FOUNDER_WALLET_ADDRESS,
-    //                DEVELOPERS_ADDRESS,
-    //                BOUNTIES_ADDRESS,
-    //                SIRIN_LABS_RESERVE_ADDRESS)
+    deployer.then(function () {
+        return SirinSmartToken.deployed();
+    }).then(function (instance) {
+        token = instance;
+        return SirinCrowdsale.deployed();
+    }).then(function (instance) {
+        sale = instance;
+        return RefundVault.deployed();
+    }).then(function (instance) {
+        vault = instance;
+        return token.transferOwnership(sale.address);
+    }).then(function () {
+        return vault.transferOwnership(sale.address);
+    }).then(function () {
+        return sale.claimRefundVaultOwnership();
+    }).then(function () {
+        return sale.claimTokenOwnership();
+    }).then(function () {
+        return sale.transferOwnership(MultiSig.address);
+    }).then(function () {
+        return MultiSig.deployed();
+    }).then(function(instance){
+        multiSig = instance;
+        return multiSig.submitTransaction(sale.address, 0, 0x4e71e0c8);
+    });
 };

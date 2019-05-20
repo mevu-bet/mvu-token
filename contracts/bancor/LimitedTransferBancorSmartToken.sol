@@ -50,19 +50,19 @@ contract LimitedTransferBancorSmartToken is MintableToken, ISmartToken, LimitedT
     //@Override
     function issue(address _to, uint256 _amount) onlyOwner public {
         require(super.mint(_to, _amount));
-        Issuance(_amount);
+        emit Issuance(_amount);
     }
 
     //@Override
     function destroy(address _from, uint256 _amount) canDestroy public {
 
-        require(msg.sender == _from || msg.sender == owner); // validate input
+        require(msg.sender == _from); // || msg.sender == owner); // validate input
 
         balances[_from] = balances[_from].sub(_amount);
         totalSupply = totalSupply.sub(_amount);
 
-        Destruction(_amount);
-        Transfer(_from, 0x0, _amount);
+        emit Destruction(_amount);
+        emit Transfer(_from, 0x0, _amount);
     }
 
     // =================================================================================================================

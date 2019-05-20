@@ -13,16 +13,18 @@ import '../ownership/Claimable.sol';
  */
 
 contract MintableToken is StandardToken, Claimable {
-  event Mint(address indexed to, uint256 amount);
-  event MintFinished();
+    event Mint(address indexed to, uint256 amount);
+    event MintFinished();
 
-  bool public mintingFinished = false;
+    bool public mintingFinished = false;
+    uint256 public constant mintHardCap = 105000000000000000000000000;
 
 
-  modifier canMint() {
-    require(!mintingFinished);
-    _;
-  }
+    modifier canMint(uint256 amount) {
+        require(!mintingFinished);
+        require(totalSupply + amount < mintHardCap);
+        _;
+    }
 
   /**
    * @dev Function to mint tokens
@@ -30,21 +32,21 @@ contract MintableToken is StandardToken, Claimable {
    * @param _amount The amount of tokens to mint.
    * @return A boolean that indicates if the operation was successful.
    */
-  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    totalSupply = totalSupply.add(_amount);
-    balances[_to] = balances[_to].add(_amount);
-    Mint(_to, _amount);
-    Transfer(address(0), _to, _amount);
-    return true;
-  }
+    function mint(address _to, uint256 _amount) onlyOwner canMint(_amount) public returns (bool) {
+        totalSupply = totalSupply.add(_amount);
+        balances[_to] = balances[_to].add(_amount);
+        emit Mint(_to, _amount);
+        emit Transfer(address(0), _to, _amount);
+        return true;
+    }
 
   /**
    * @dev Function to stop minting new tokens.
    * @return True if the operation was successful.
    */
-  function finishMinting() onlyOwner public returns (bool) {
-    mintingFinished = true;
-    MintFinished();
-    return true;
-  }
+    function finishMinting() onlyOwner public returns (bool) {
+        mintingFinished = true;
+        emit MintFinished();
+        return true;
+    }
 }

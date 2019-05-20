@@ -353,7 +353,7 @@ contract('RefundVault', function([_, investor, owner, wallet, walletTeam, wallet
             this.token.setDestroyEnabled(true, {from:owner});
 
             await this.vault.deposit(investor, tokensAmount, {value: value, from:owner});
-            this.vault.enableRefunds({from:owner});
+            await this.vault.enableRefunds({from:owner});
 
             await this.vault.refundETH(ether(0.5), {from:investor});
 
@@ -369,7 +369,7 @@ contract('RefundVault', function([_, investor, owner, wallet, walletTeam, wallet
             this.token.setDestroyEnabled(true, {from:owner});
 
             await this.vault.deposit(investor, tokensAmount, {value: value, from:owner});
-            this.vault.enableRefunds({from:owner});
+            await this.vault.enableRefunds({from:owner});
 
             let investorBalanceBefore = await web3.eth.getBalance(investor);
             await this.vault.refundETH(ether(0.5), {from:investor});

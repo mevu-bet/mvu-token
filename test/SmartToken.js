@@ -74,97 +74,97 @@ contract('SmartToken', (accounts) => {
         }
     });
 
-    it('verifies that the owner can disable & re-enable destroy', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        let destroyEnabled = await token.destroyEnabled.call();
-        assert.equal(destroyEnabled, true);
-        await token.setDestroyEnabled(false);
-        destroyEnabled  = await token.destroyEnabled.call();
-        assert.equal(destroyEnabled, false);
-    });
+    // it('verifies that the owner can disable & re-enable destroy', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     let destroyEnabled = await token.destroyEnabled.call();
+    //     assert.equal(destroyEnabled, true);
+    //     await token.setDestroyEnabled(false);
+    //     destroyEnabled  = await token.destroyEnabled.call();
+    //     assert.equal(destroyEnabled, false);
+    // });
 
-    it('should throw when a non owner attempts to enable destroy flag', async () => {
-        let token = await SmartToken.new();
+    // it('should throw when a non owner attempts to enable destroy flag', async () => {
+    //     let token = await SmartToken.new();
 
-        try {
-            await token.setDestroyEnabled(true, {
-                from: accounts[1]
-            });
-            assert(false, "didn't throw");
-        } catch (error) {
-            return utils.ensureException(error);
-        }
-    });
+    //     try {
+    //         await token.setDestroyEnabled(true, {
+    //             from: accounts[1]
+    //         });
+    //         assert(false, "didn't throw");
+    //     } catch (error) {
+    //         return utils.ensureException(error);
+    //     }
+    // });
 
-    it('verifies that destroy enable flag must be true before calling the destroy function', async () => {
-        let token = await SmartToken.new();
+    // it('verifies that destroy enable flag must be true before calling the destroy function', async () => {
+    //     let token = await SmartToken.new();
 
-        await token.issue(accounts[1], 100);
-        try {
-            await token.destroy(accounts[1], 20);
-            assert(false, "didn't throw");
-        } catch (error) {
-            assert(true,utils.ensureException(error));
-        }
-        await token.setDestroyEnabled(true);
-        await token.destroy(accounts[1], 20);
-        let balance = await token.balanceOf.call(accounts[1]);
-        assert.equal(balance, 80);
-    });
+    //     await token.issue(accounts[1], 100);
+    //     try {
+    //         await token.destroy(accounts[1], 20);
+    //         assert(false, "didn't throw");
+    //     } catch (error) {
+    //         assert(true,utils.ensureException(error));
+    //     }
+    //     await token.setDestroyEnabled(true);
+    //     await token.destroy(accounts[1], 20);
+    //     let balance = await token.balanceOf.call(accounts[1]);
+    //     assert.equal(balance, 80);
+    // });
 
-    it('verifies that destroy tokens updates the target balance and the total supply', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        await token.issue(accounts[1], 100);
-        await token.destroy(accounts[1], 20);
-        let totalSupply = await token.totalSupply.call();
-        assert.equal(totalSupply, 80);
-        let balance = await token.balanceOf.call(accounts[1]);
-        assert.equal(balance, 80);
-    });
+    // it('verifies that destroy tokens updates the target balance and the total supply', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     await token.issue(accounts[1], 100);
+    //     await token.destroy(accounts[1], 20);
+    //     let totalSupply = await token.totalSupply.call();
+    //     assert.equal(totalSupply, 80);
+    //     let balance = await token.balanceOf.call(accounts[1]);
+    //     assert.equal(balance, 80);
+    // });
 
-    it('verifies that the owner can destroy tokens', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        await token.issue(accounts[1], 100);
-        await token.destroy(accounts[1], 20);
-        let balance = await token.balanceOf.call(accounts[1]);
-        assert.equal(balance, 80);
-    });
+    // it('verifies that the owner can destroy tokens', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     await token.issue(accounts[1], 100);
+    //     await token.destroy(accounts[1], 20);
+    //     let balance = await token.balanceOf.call(accounts[1]);
+    //     assert.equal(balance, 80);
+    // });
 
-    it('verifies that the owner can destroy tokens from his/her own account', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        await token.issue(accounts[0], 100);
-        await token.destroy(accounts[0], 20);
-        let balance = await token.balanceOf.call(accounts[0]);
-        assert.equal(balance, 80);
-    });
+    // it('verifies that the owner can destroy tokens from his/her own account', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     await token.issue(accounts[0], 100);
+    //     await token.destroy(accounts[0], 20);
+    //     let balance = await token.balanceOf.call(accounts[0]);
+    //     assert.equal(balance, 80);
+    // });
 
-    it('verifies that a holder can destroy tokens from his/her own account', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        await token.issue(accounts[1], 100);
-        await token.destroy(accounts[1], 20);
-        let balance = await token.balanceOf.call(accounts[1]);
-        assert.equal(balance, 80);
-    });
+    // it('verifies that a holder can destroy tokens from his/her own account', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     await token.issue(accounts[1], 100);
+    //     await token.destroy(accounts[1], 20);
+    //     let balance = await token.balanceOf.call(accounts[1]);
+    //     assert.equal(balance, 80);
+    // });
 
-    it('should throw when a non owner attempts to destroy tokens', async () => {
-        let token = await SmartToken.new();
-        await token.setDestroyEnabled(true);
-        await token.issue(accounts[1], 100);
+    // it('should throw when a non owner attempts to destroy tokens', async () => {
+    //     let token = await SmartToken.new();
+    //     await token.setDestroyEnabled(true);
+    //     await token.issue(accounts[1], 100);
 
-        try {
-            await token.destroy(accounts[1], 20, {
-                from: accounts[2]
-            });
-            assert(false, "didn't throw");
-        } catch (error) {
-            return utils.ensureException(error);
-        }
-    });
+    //     try {
+    //         await token.destroy(accounts[1], 20, {
+    //             from: accounts[2]
+    //         });
+    //         assert(false, "didn't throw");
+    //     } catch (error) {
+    //         return utils.ensureException(error);
+    //     }
+    // });
 
     it('verifies the balances after a transfer', async () => {
         let token = await SmartToken.new();
